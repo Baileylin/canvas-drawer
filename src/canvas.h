@@ -7,7 +7,7 @@
 
 namespace agl
 {
-   enum PrimitiveType {UNDEFINED, LINES, TRIANGLES};
+   enum PrimitiveType {UNDEFINED, LINES, TRIANGLES, POINTS};
    class canvas
    {
    public:
@@ -40,8 +40,13 @@ namespace agl
       // Fill the canvas with the given background color
       void background(unsigned char r, unsigned char g, unsigned char b);
 
+      void drawLine(int aColumn, int aRow, int bColumn, int bRow);
+
    private:
       ppm_image _canvas;
+      std::vector<int> vertices;
+      ppm_pixel pixelColor;
+      PrimitiveType shape;
    };
 }
 
