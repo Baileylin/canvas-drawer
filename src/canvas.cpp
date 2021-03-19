@@ -94,9 +94,9 @@ void agl::canvas::barycentricFill(int aColumn, int aRow, int bColumn, int bRow, 
 			gamma = f_ab(aColumn, aRow, bColumn, bRow, column, row) / fab_c;
 			if (alpha >= 0 && beta >= 0 && gamma >= 0) 
 			{
-				bool drawAlpha = (alpha > 0 || (fbc_a * f_bc(bColumn, bRow, cColumn, cRow, -1.1, -2.1)) > 0);
-				bool drawBeta = (beta > 0 || (fac_b * f_ac(aColumn, aRow, cColumn, cRow, -1.1, -2.1)) > 0);
-				bool drawGamma= (gamma > 0 || (fab_c * f_ab(aColumn, aRow, bColumn, bRow, -1.1, -2.1)) > 0);
+				bool drawAlpha = ((alpha > 0) || (fbc_a * f_bc(bColumn, bRow, cColumn, cRow, -1, -1)) > 0);
+				bool drawBeta = ((beta > 0) || (fac_b * f_ac(aColumn, aRow, cColumn, cRow, -1, -1)) > 0);
+				bool drawGamma= ((gamma > 0) || (fab_c * f_ab(aColumn, aRow, bColumn, bRow, -1, -1)) > 0);
 				if (drawAlpha && drawBeta && drawGamma)
 				{
 					temporary.r = alpha * aColor.r;
@@ -104,7 +104,6 @@ void agl::canvas::barycentricFill(int aColumn, int aRow, int bColumn, int bRow, 
 					temporary.b = gamma * aColor.b;
 					_canvas.set(row, column, temporary);
 					cout << row << " " << column << endl;
-					
 				}	
 			}
 		}
