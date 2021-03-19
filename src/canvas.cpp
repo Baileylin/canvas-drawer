@@ -33,9 +33,7 @@ void canvas::end()
 	}
 	else if (shape == TRIANGLES)
 	{
-		drawLine(vertices[index], vertices[index + 1], vertices[index + 2], vertices[index + 3]);
-		drawLine(vertices[index+2], vertices[index + 3], vertices[index + 4], vertices[index + 5]);
-		drawLine(vertices[index+4], vertices[index + 5], vertices[index], vertices[index + 1]);
+		barycentricFill(vertices[0], vertices[1], vertices[2], vertices[3], vertices[4], vertices[5]);
 	}
 	vertices.clear();
 }
@@ -79,9 +77,9 @@ void agl::canvas::barycentricFill(int aColumn, int aRow, int bColumn, int bRow, 
 	int ymin = maxCordinates[1];
 	int xmax = maxCordinates[2];
 	int ymax = maxCordinates[3];
-	int fab_c = f_ab(aColumn, aRow, bColumn, bRow, cColumn, cRow);
-	int fac_b = f_ac(aColumn, aRow, cColumn, cRow, bColumn, bRow);
-	int fbc_a = f_bc(bColumn, bRow, cColumn, cRow, aColumn, aRow);
+	int fab_c = f_ab(aColumn, aRow, bColumn, bRow, cColumn, cRow);  //gamma
+	int fac_b = f_ac(aColumn, aRow, cColumn, cRow, bColumn, bRow);  //beta
+	int fbc_a = f_bc(bColumn, bRow, cColumn, cRow, aColumn, aRow);  //alpha
 	ppm_pixel aColor = _canvas.get(aRow, aColumn);
 	ppm_pixel bColor = _canvas.get(bRow, bColumn);
 	ppm_pixel cColor = _canvas.get(cRow, cColumn);
@@ -89,35 +87,25 @@ void agl::canvas::barycentricFill(int aColumn, int aRow, int bColumn, int bRow, 
 
 	for (int row = ymin; row <= ymax; row++) 
 	{
-		for (int column = xmin; column < xmax; column++) 
+		for (int column = xmin; column <= xmax; column++) 
 		{
 			alpha = f_bc(bColumn, bRow, cColumn, cRow, column, row) / fbc_a;
 			beta = f_ac(aColumn, aRow, cColumn, cRow, column, row) / fac_b;
 			gamma = f_ab(aColumn, aRow, bColumn, bRow, column, row) / fab_c;
 			if (alpha >= 0 && beta >= 0 && gamma >= 0) 
 			{
-				if (alpha > 0 || fbc_a * ((cRow - bRow) * (-1.1 - bColumn) - (cColumn - bColumn) * (-2.1 - bRow)) > 0)
+				bool drawAlpha = (alpha > 0 || (fbc_a * f_bc(bColumn, bRow, cColumn, cRow, -1.1, -2.1)) > 0);
+				bool drawBeta = (beta > 0 || (fac_b * f_ac(aColumn, aRow, cColumn, cRow, -1.1, -2.1)) > 0);
+				bool drawGamma= (gamma > 0 || (fab_c * f_ab(aColumn, aRow, bColumn, bRow, -1.1, -2.1)) > 0);
+				if (drawAlpha && drawBeta && drawGamma)
 				{
 					temporary.r = alpha * aColor.r;
-					temporary.g = alpha * aColor.g;
-					temporary.b = alpha * aColor.b;
+					temporary.g = beta * aColor.g;
+					temporary.b = gamma * aColor.b;
 					_canvas.set(row, column, temporary);
-				}
-				if (alpha > 0 || fac_b * ((cRow - aRow) * (-1.1 - aColumn) - (cColumn - aColumn) * (-2.1 - aRow)) > 0)
-				{
-					temporary.r = beta * bColor.r;
-					temporary.g = beta * bColor.g;
-					temporary.b = beta * bColor.b;
-					_canvas.set(row, column, temporary);
-				}
-				if (alpha > 0 || fab_c * ((bRow - aRow) * (-1.1 - aColumn) - (bColumn - aColumn) * (-2.1 - aRow)) > 0)
-				{
-					temporary.r = gamma * cColor.r;
-					temporary.g = gamma * cColor.g;
-					temporary.b = gamma * cColor.b;
-					_canvas.set(row, column, temporary);
-				}
+					cout << row << " " << column << endl;
 					
+				}	
 			}
 		}
 	}
@@ -125,19 +113,19 @@ void agl::canvas::barycentricFill(int aColumn, int aRow, int bColumn, int bRow, 
 
 
 
-int agl::canvas::f_ab(int aColumn, int aRow, int bColumn, int bRow, int x, int y)
+float agl::canvas::f_ab(int aColumn, int aRow, int bColumn, int bRow, int x, int y)
 {
-	return ((bRow - aRow) * (x - aColumn) - (bColumn - aColumn) * (y - aRow));
+	return (((float)bRow - aRow) * (x - aColumn) - ((float)bColumn - aColumn) * (y - aRow));
 }
 
-int agl::canvas::f_ac(int aColumn, int aRow, int cColumn, int cRow, int x, int y)
+float agl::canvas::f_ac(int aColumn, int aRow, int cColumn, int cRow, int x, int y)
 {
-	return ((cRow - aRow) * (x - aColumn) - (cColumn - aColumn) * (y - aRow));
+	return (((float)cRow - aRow) * (x - aColumn) - ((float)cColumn - aColumn) * (y - aRow));
 }
 
-int agl::canvas::f_bc(int bColumn, int bRow, int cColumn, int cRow, int x, int y)
+float agl::canvas::f_bc(int bColumn, int bRow, int cColumn, int cRow, int x, int y)
 {
-	return ((cRow - bRow) * (x - bColumn) - (cColumn - bColumn) * (y - bRow));
+	return (((float)cRow - bRow) * (x - bColumn) - ((float)cColumn - bColumn) * (y - bRow));
 }
 
 vector<int> agl::canvas::getBoundingBoxCordinates(int aColumn, int aRow, int bColumn, int bRow, int cColumn, int cRow)
@@ -149,37 +137,33 @@ vector<int> agl::canvas::getBoundingBoxCordinates(int aColumn, int aRow, int bCo
 	int ymin = rows[0];
 	int xmax = columns[0];
 	int ymax = rows[0];
-	for (int i = 0; i < columns.size()-1; i++) 
+	for (int i = 1; i < columns.size(); i++) 
 	{
-		if (columns[i] >= columns[i + 1])
-		{
-			xmin = columns[i + 1];
-			xmax = columns[i];
-		}
-		else 
+		if (xmin > columns[i])
 		{
 			xmin = columns[i];
-			xmax = columns[i + 1];
+		}
+		if(xmax < columns[i])
+		{
+			xmax = columns[i];
 		}
 	}
-	for (int i = 0; i < rows.size() - 1; i++)
+	for (int i = 1; i < rows.size(); i++)
 	{
-		if (rows[i] >= rows[i + 1])
-		{
-			ymin = rows[i + 1];
-			ymax = rows[i];
-		}
-		else
+		if (ymin > rows[i])
 		{
 			ymin = rows[i];
-			ymax = rows[i + 1];
 		}
-		results.push_back(xmin);
-		results.push_back(ymin);
-		results.push_back(xmax);
-		results.push_back(ymax);
-		return results;
+		if (ymax < rows[i])
+		{
+			ymax = rows[i];
+		}
 	}
+	results.push_back(xmin);
+	results.push_back(ymin);
+	results.push_back(xmax);
+	results.push_back(ymax);
+	return results;
 }
 
 

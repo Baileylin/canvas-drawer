@@ -46,9 +46,9 @@ namespace agl
 
       std::vector<int> getBoundingBoxCordinates(int aColumn, int aRow, int bColumn, int bRow, int cColumn, int cRow);
 
-      int f_ab(int aColumn, int aRow, int bColumn, int bRow, int x, int y);
-      int f_ac(int aColumn, int aRow, int cColumn, int cRow, int x, int y);
-      int f_bc(int bColumn, int bRow, int cColumn, int cRow, int x, int y);
+      float f_ab(int aColumn, int aRow, int bColumn, int bRow, int x, int y);
+      float f_ac(int aColumn, int aRow, int cColumn, int cRow, int x, int y);
+      float f_bc(int bColumn, int bRow, int cColumn, int cRow, int x, int y);
 
    private:
       ppm_image _canvas;

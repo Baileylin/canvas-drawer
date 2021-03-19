@@ -51,7 +51,7 @@ int main(int argc, char** argv)
    drawer.vertex(10, 90);
    drawer.end();
    drawer.save("triangle.png");
-   /*
+ /*
    // test triangle with interpolation
    drawer.background(0, 0, 0);
    drawer.begin(TRIANGLES);
