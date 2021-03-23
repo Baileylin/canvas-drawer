@@ -103,7 +103,6 @@ void agl::canvas::barycentricFill(int aColumn, int aRow, int bColumn, int bRow, 
 					temporary.g = beta * aColor.g;
 					temporary.b = gamma * aColor.b;
 					_canvas.set(row, column, temporary);
-					cout << row << " " << column << endl;
 				}	
 			}
 		}
