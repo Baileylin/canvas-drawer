@@ -35,6 +35,10 @@ void canvas::end()
 	{
 		barycentricFill(vertices[0], vertices[1], vertices[2], vertices[3], vertices[4], vertices[5]);
 	}
+	else if (shape == POINTS) 
+	{
+		_canvas.set(vertices[1], vertices[0], { pixelColor });
+	}
 	vertices.clear();
 }
 
